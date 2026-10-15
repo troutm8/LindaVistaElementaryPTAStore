@@ -228,3 +228,19 @@ under Tom's account, region sfo1, GitHub repo connected so pushes to `main` depl
 
 Next: Square sandbox credentials in Vercel to exercise the real checkout; Resend key for real
 emails; custom domain if the PTA has one.
+
+### 2026-10-15 — smoke test for the deployed site
+
+Tom sent the URL to the PTA and is waiting on feedback. Decided to hold off on page-level and
+API tests until the design settles, but added one guard for the "deploy broke" case:
+`scripts/smoke.ts` (`pnpm smoke`), eight HTTP checks against the Vercel URL by default.
+
+- Home renders the catalog with product links (proves the database is reachable and seeded).
+- Product page 200, unknown slug 404, cart and checkout 200.
+- `POST /api/checkout` with `{}` → 400 (route alive, zod validation working, no order created).
+- `POST /api/square/webhook` unsigned → 401.
+- `/admin` → 401; with `ADMIN_PASSWORD` set in the shell, also checks the login gives 200.
+- `SMOKE_URL` overrides the target. Exit code 1 on any failure, so it can gate CI later.
+
+All eight pass against production. Not wired into CI or Vercel yet; run it by hand after a
+deploy until the catalog and checkout shape are final.

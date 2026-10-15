@@ -46,6 +46,7 @@ Things that will otherwise cost you time:
 pnpm dev | build | start
 pnpm typecheck                # tsc --noEmit
 pnpm test                     # vitest: cart logic, money, order helpers (no database)
+pnpm smoke                    # HTTP checks against the live site (SMOKE_URL overrides; ADMIN_PASSWORD adds the login check)
 pnpm db:generate              # new migration from src/db/schema.ts
 pnpm db:migrate               # apply drizzle/ migrations
 pnpm db:seed                  # placeholder catalog from src/db/seed-data.ts (no-op if seeded)
