@@ -37,6 +37,11 @@ Things that will otherwise cost you time:
 - **Every integration is optional** and the app degrades to a demo: no Square token → fake
   payment that marks the order paid at once; no Resend key → emails print to the console;
   no `DATABASE_URL` → PGlite. See `.env.example`.
+- **Square sandbox has no card form.** A sandbox payment link opens Square's "Checkout API
+  Sandbox Testing Panel"; one click simulates the payment and fires the webhooks. The real
+  hosted checkout only shows in production. Sandbox creds and the webhook (created via the
+  Webhook Subscriptions API) are set in Vercel; after any `vercel env add`, run
+  `vercel redeploy https://linda-vista-pta-store.vercel.app` or the change does nothing.
 - **Square money is `bigint`** in the SDK (`amount: BigInt(cents)`). Webhook bodies are raw
   snake_case JSON, not SDK-shaped camelCase.
 

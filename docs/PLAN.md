@@ -244,3 +244,28 @@ API tests until the design settles, but added one guard for the "deploy broke" c
 
 All eight pass against production. Not wired into CI or Vercel yet; run it by hand after a
 deploy until the catalog and checkout shape are final.
+
+### 2026-10-15 — Square sandbox checkout verified end to end
+
+Tom created the Square developer app and supplied the sandbox access token. Set in Vercel
+(production + preview): `SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID` (looked up via
+`GET /v2/locations`, the Default Test Account), and `SQUARE_WEBHOOK_SIGNATURE_KEY`. The
+webhook subscription was created through Square's Webhook Subscriptions API rather than
+the dashboard: `payment.created` + `payment.updated` → `/api/square/webhook`, API version
+2025-01-23.
+
+Test run on the live site, order LV-0002 ($15, one youth tee, send-home):
+
+- `POST /api/checkout` returned a `sandbox.square.link` URL; the Square order carried
+  `reference_id` LV-0002 and our metadata.
+- In sandbox, a payment link opens Square's "Checkout API Sandbox Testing Panel" instead of
+  a card form. One click simulates the payment; no test card is needed. The real hosted
+  checkout page only appears in production.
+- Square redirected to `/order/<publicId>?return=square` as designed.
+- The `payment.updated` webhook arrived with a valid signature and `markPaid` ran: the order
+  was "Paid, not packed" on the board before anyone opened the order page, so the polling
+  fallback was not what did it.
+
+Gotchas: Vercel env changes need `vercel redeploy <url>` to take effect. The board hides
+unpaid (abandoned) checkouts by design; worth a tab or a nightly cleanup later.
+
