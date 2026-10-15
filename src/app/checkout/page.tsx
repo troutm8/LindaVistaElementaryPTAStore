@@ -90,12 +90,13 @@ function CheckoutForm() {
         </label>
 
         {error && <p className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
-        <button type="submit" disabled={busy} className="rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark disabled:bg-slate-300">
+        <button type="submit" disabled={busy} className="w-full rounded-lg bg-brand px-6 py-3 font-semibold text-white hover:bg-brand-dark disabled:bg-slate-300 sm:w-auto sm:self-start">
           {busy ? "One moment…" : `Continue to payment · ${formatCents(subtotalCents)}`}
         </button>
       </form>
 
-      <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4">
+      {/* First on a phone so the parent sees what they're paying for before the form; beside it on wider screens. */}
+      <aside className="order-first h-fit rounded-xl border border-slate-200 bg-white p-4 md:order-none">
         <h2 className="mb-3 font-semibold">Order summary</h2>
         <ul className="divide-y divide-slate-100 text-sm">
           {lines.map((l) => (

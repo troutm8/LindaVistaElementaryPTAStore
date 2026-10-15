@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrderByPublicId, markPaid, orderNumber, PICKUP_LABELS, STATUS_LABELS } from "@/lib/orders";
+import { getOrderByPublicId, markPaid, orderNumber, PICKUP_LABELS } from "@/lib/orders";
 import { formatCents } from "@/lib/money";
 import { squareEnabled } from "@/lib/env";
 import { squareOrderPaid } from "@/lib/square";
@@ -10,6 +10,8 @@ import type { OrderStatus } from "@/db/schema";
 export const dynamic = "force-dynamic";
 
 const STEPS: OrderStatus[] = ["paid", "packed", "ready", "picked_up"];
+/** Short enough to sit four across on a phone. */
+const STEP_LABELS: Record<(typeof STEPS)[number], string> = { paid: "Paid", packed: "Packed", ready: "Ready", picked_up: "Picked up", pending: "", cancelled: "" };
 
 export default async function OrderPage({ params }: { params: Promise<{ publicId: string }> }) {
   const { publicId } = await params;
@@ -50,14 +52,14 @@ export default async function OrderPage({ params }: { params: Promise<{ publicId
             {STEPS.map((s, i) => (
               <li key={s} className={i <= stepIndex ? "font-semibold text-brand" : "text-slate-400"}>
                 <div className={`mx-auto mb-1 h-2 rounded-full ${i <= stepIndex ? "bg-brand" : "bg-slate-200"}`} />
-                {STATUS_LABELS[s]}
+                {STEP_LABELS[s]}
               </li>
             ))}
           </ol>
         )}
         {order.status === "cancelled" && <p className="mt-4 rounded-lg bg-red-50 p-3 text-red-700">This order was cancelled. Contact the PTA if that&apos;s a surprise.</p>}
 
-        <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <dl className="mt-6 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
           <dt className="text-slate-500">Delivery</dt><dd>{PICKUP_LABELS[order.pickupMethod]}</dd>
           <dt className="text-slate-500">Student</dt><dd>{order.studentName}{order.teacher && ` · ${order.teacher}`}</dd>
           <dt className="text-slate-500">Email</dt><dd>{order.email}</dd>

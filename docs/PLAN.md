@@ -297,3 +297,28 @@ tests pass.
 Not done on purpose: bulk "mark all packed" on the packing list, a catalog/product editor,
 and showing abandoned (unpaid) checkouts on the board. Revisit after feedback.
 
+### 2026-10-15 — phone-width pass of the parent flow
+
+Walked home → product → cart → checkout → confirmation at 390px (iPhone width). Chrome
+would not shrink the window, so the pages were rendered inside 390px iframes on a scratch
+page; same result for layout purposes.
+
+Fine as-is: header, hero, two-column product grid, product page (full-width photo, pickers,
+quantity, button), 16px gutters, inputs at 16px so iOS does not zoom on focus.
+
+Fixed:
+- **Cart rows** crammed name, quantity, price, and remove onto one line; the name wrapped to
+  three lines. The controls now wrap onto their own line under the name on phones (flex-wrap
+  with a "Qty" label that is visually hidden on wider screens). Check-out button is full width
+  on phones.
+- **Checkout** put the order summary *below* the "Continue to payment" button on phones, so a
+  parent would pay without seeing the items. The summary is now first on phones
+  (`order-first md:order-none`) and stays in the right column on wider screens. Submit button
+  full width on phones.
+- **Confirmation page** progress labels ("Paid, not packed", "Ready for pickup") wrapped to
+  two lines four-across. The bar now uses short labels (Paid / Packed / Ready / Picked up);
+  the full labels still appear on the board. The details grid is `auto 1fr` so values get the
+  room instead of a 50/50 split.
+
+Desktop re-checked after the changes; unchanged.
+
