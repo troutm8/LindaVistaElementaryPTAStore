@@ -42,6 +42,12 @@ Things that will otherwise cost you time:
   hosted checkout only shows in production. Sandbox creds and the webhook (created via the
   Webhook Subscriptions API) are set in Vercel; after any `vercel env add`, run
   `vercel redeploy https://linda-vista-pta-store.vercel.app` or the change does nothing.
+- **Do not poll production in a loop.** Vercel's firewall (System Mitigations, on by default)
+  challenged this machine's IP after a 60-request readiness loop plus a few smoke runs: every
+  request from here got a 403 "Vercel Security Checkpoint" (`x-vercel-mitigated: challenge`)
+  while browsers were unaffected. To know a deploy is live, use `vercel ls` or wait for
+  `gh run watch`; then run `pnpm smoke` once. The block clears on its own or from the
+  project's Firewall page ("View Persistent Action").
 - **Square money is `bigint`** in the SDK (`amount: BigInt(cents)`). Webhook bodies are raw
   snake_case JSON, not SDK-shaped camelCase.
 
