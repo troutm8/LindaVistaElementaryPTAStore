@@ -106,7 +106,8 @@ Cart lives in `localStorage` only; it is not an order until Stripe says so.
 
 - Connect the PTA's production Square account (OAuth or a personal access token from the
   treasurer's Square developer app) and register the webhook.
-- Decide whether the catalog syncs from Square's Catalog API; real photos; inventory counts.
+- Decide whether the catalog syncs from Square's Catalog API; real photos. (Stock editing on
+  the board is done; a catalog editor is not.)
 - Google sign-in for `/admin` with allowlisted PTA emails.
 - Real Postgres (Neon), Resend domain verified, custom domain (e.g. `store.lvpta.org`).
 - Sales tax: ask the treasurer. California PTAs selling merchandise generally need a seller's
@@ -268,4 +269,31 @@ Test run on the live site, order LV-0002 ($15, one youth tee, send-home):
 
 Gotchas: Vercel env changes need `vercel redeploy <url>` to take effect. The board hides
 unpaid (abandoned) checkouts by design; worth a tab or a nightly cleanup later.
+
+### 2026-10-15 — CI and volunteer tools
+
+While waiting on the PTA's feedback, the work that does not depend on the catalog:
+
+- **CI**: GitHub Actions runs typecheck, vitest, and `next build` against a fresh PGlite
+  database on every push to `main` and every PR. The smoke test stays manual since it hits
+  production.
+- **Packing list** (`/admin/packing`): "To pack" shows paid orders with a pull list (total
+  quantity per variant) and then each bag grouped by destination: front office first, then
+  teachers alphabetically, then send-home orders with no teacher. "To deliver" is the same
+  layout for packed orders. Printable, with a checkbox per bag. Logic in `src/lib/packing.ts`.
+- **Stock editor** (`/admin/stock`): every variant with its count, Sold out / Low badges, a
+  number input and Save per row. Server action clamps to 0..10000.
+- **CSV exports** (`/admin/export/orders.csv`, `items.csv`): one row per order (with Square
+  order and payment ids, for reconciliation) and one row per line item (for "how many youth
+  smalls"). Status is the raw key (`paid`, `packed`...) so it filters cleanly in a sheet.
+  Timestamps are Pacific, `YYYY-MM-DD HH:MM`.
+- **Bug fixed**: the board rendered times in the server's timezone (UTC on Vercel), so a 2:38 PM
+  order showed as 9:38 PM. All volunteer-facing times now pass `timeZone: "America/Los_Angeles"`.
+- Smoke test now also checks packing, stock, and the CSV header behind the password.
+
+Verified locally in Chrome with four demo orders across two teachers and the office. 14 unit
+tests pass.
+
+Not done on purpose: bulk "mark all packed" on the packing list, a catalog/product editor,
+and showing abandoned (unpaid) checkouts on the board. Revisit after feedback.
 

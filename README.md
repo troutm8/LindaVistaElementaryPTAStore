@@ -19,6 +19,10 @@ pnpm dev
 Place an order, then go to the board, mark it packed, mark it ready, and watch the
 "your bag is ready" email print in the terminal.
 
+The board also has a **Packing list** (totals to pull from stock, then every bag grouped by
+classroom or the front office, printable), a **Stock** page for on-hand counts (zero shows
+"Sold out" in the store), and **CSV exports** of orders and line items for the treasurer.
+
 ## Turning on the real integrations
 
 Copy `.env.example` to `.env` and fill in what you have. Each one is independent.

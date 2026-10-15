@@ -34,3 +34,18 @@ export function groupByCategory<T extends { category: string }>(items: T[]): { c
   }
   return out;
 }
+
+/** Every product (active or not) with every variant, for the stock editor. */
+export async function listCatalogForAdmin(): Promise<ProductWithVariants[]> {
+  const d = await db();
+  const ps = await d.select().from(products).orderBy(asc(products.sortOrder), asc(products.id));
+  const vs = await d.select().from(variants).orderBy(asc(variants.id));
+  const byProduct = new Map<number, Variant[]>();
+  for (const v of vs) byProduct.set(v.productId, [...(byProduct.get(v.productId) ?? []), v]);
+  return ps.map((p) => ({ ...p, variants: byProduct.get(p.id) ?? [] }));
+}
+
+export async function setVariantStock(variantId: number, stock: number): Promise<void> {
+  const d = await db();
+  await d.update(variants).set({ stock }).where(eq(variants.id, variantId));
+}

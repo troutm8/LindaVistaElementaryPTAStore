@@ -38,7 +38,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <h1 className="text-2xl font-bold">Volunteer board</h1>
           <p className="text-sm text-slate-500">Pack the order, print the label, bag it, mark it ready. The family gets an email at “ready”.</p>
         </div>
-        <Link href="/" className="text-sm text-brand underline">View store</Link>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <Link href="/admin/packing" className="font-semibold text-brand underline">Packing list</Link>
+          <Link href="/admin/stock" className="font-semibold text-brand underline">Stock</Link>
+          <a href="/admin/export/orders.csv" className="font-semibold text-brand underline">Orders CSV</a>
+          <a href="/admin/export/items.csv" className="font-semibold text-brand underline">Items CSV</a>
+          <Link href="/" className="text-slate-600 underline">View store</Link>
+        </div>
       </div>
 
       <nav className="mb-6 flex flex-wrap gap-2">
@@ -78,7 +84,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
             Student: <strong>{order.studentName}</strong>{order.teacher && ` · ${order.teacher}`}
           </div>
           <div className="text-sm text-slate-600">{PICKUP_LABELS[order.pickupMethod]}</div>
-          <div className="text-xs text-slate-400">{when.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })} · {order.email}{order.phone && ` · ${order.phone}`}</div>
+          <div className="text-xs text-slate-400">{when.toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" })} · {order.email}{order.phone && ` · ${order.phone}`}</div>
         </div>
         <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{STATUS_LABELS[order.status]}</span>
       </div>

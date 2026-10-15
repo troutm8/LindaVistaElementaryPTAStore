@@ -83,13 +83,20 @@ const checks: Check[] = [
     },
   },
   {
-    name: "admin board opens with the password",
+    name: "admin board, packing list, stock, and CSV open with the password",
     run: async () => {
       if (!adminPassword) return "skipped (set ADMIN_PASSWORD to check)";
       const auth = "Basic " + Buffer.from(`volunteer:${adminPassword}`).toString("base64");
       const { res, body } = await get("/admin", { headers: { authorization: auth } });
       expect(res.status === 200, `status ${res.status}`);
-      expect(body.includes("Orders") || body.includes("LV-"), "board content missing");
+      expect(body.includes("Volunteer board"), "board content missing");
+      for (const path of ["/admin/packing", "/admin/stock"]) {
+        const page = await get(path, { headers: { authorization: auth } });
+        expect(page.res.status === 200, `${path} status ${page.res.status}`);
+      }
+      const csv = await get("/admin/export/orders.csv", { headers: { authorization: auth } });
+      expect(csv.res.status === 200, `orders.csv status ${csv.res.status}`);
+      expect(csv.body.startsWith("order,status,"), "orders.csv header missing");
     },
   },
 ];

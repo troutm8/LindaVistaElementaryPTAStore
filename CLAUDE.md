@@ -50,7 +50,7 @@ Things that will otherwise cost you time:
 ```bash
 pnpm dev | build | start
 pnpm typecheck                # tsc --noEmit
-pnpm test                     # vitest: cart logic, money, order helpers (no database)
+pnpm test                     # vitest: cart logic, money, order helpers, csv, packing (no database)
 pnpm smoke                    # HTTP checks against the live site (SMOKE_URL overrides; ADMIN_PASSWORD adds the login check)
 pnpm db:generate              # new migration from src/db/schema.ts
 pnpm db:migrate               # apply drizzle/ migrations
@@ -61,12 +61,18 @@ pnpm db:reset                 # wipe PGlite, migrate, seed
 ## Layout
 
 - `src/app/` pages: `/` catalog, `/item/[slug]`, `/cart`, `/checkout`, `/order/[publicId]`,
-  `/admin` volunteer board, `/admin/orders/[id]/label` printable bag label.
+  `/admin` volunteer board, `/admin/packing` printable packing list (pull totals + bags grouped
+  by classroom), `/admin/stock` on-hand counts editor, `/admin/export/{orders,items}.csv`
+  spreadsheet exports, `/admin/orders/[id]/label` printable bag label.
 - `src/app/api/checkout` creates the order and starts payment; `src/app/api/square/webhook`
   marks it paid. `src/lib/square.ts` wraps the SDK. `src/middleware.ts` is basic auth for
   `/admin`.
 - `src/lib/orders.ts` is the order lifecycle (pending → paid → packed → ready → picked_up).
   Only `markPaid` makes an order real; it is idempotent and decrements stock.
+- `src/lib/packing.ts`, `src/lib/csv.ts`, `src/lib/export.ts` are pure and tested; the admin
+  pages are thin wrappers over them. Times shown to volunteers or exported use
+  `America/Los_Angeles` explicitly because Vercel runs in UTC.
+- CI (`.github/workflows/ci.yml`) runs typecheck, tests, and a PGlite build on every push and PR.
 - `src/lib/cart-logic.ts` is pure and tested; `src/lib/cart.tsx` is the React provider
   backed by `localStorage`.
 - Placeholder product images are generated SVGs in `public/products/`. `public/eagle.png`
