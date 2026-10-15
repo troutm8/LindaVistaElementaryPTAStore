@@ -209,3 +209,22 @@ transparency), saved as `public/eagle.png` and as the favicon at `src/app/icon.p
 
 Open: confirm with the PTA that the school is fine with the PTA store using the school's
 eagle (it is the school's logo, not the PTA's).
+
+### 2026-10-15 — first production deploy
+
+Live at https://linda-vista-pta-store.vercel.app (Vercel project `linda-vista-pta-store`
+under Tom's account, region sfo1, GitHub repo connected so pushes to `main` deploy).
+
+- Database: Neon free tier via the Vercel marketplace (resource `lvpta-db`, region pdx1).
+  `DATABASE_URL` and the other Neon variables are injected into all Vercel environments.
+- Build command runs `db:migrate` and `db:seed` before `next build`, so the schema and the
+  placeholder catalog set themselves up; seed is a no-op once products exist.
+- Env set in Vercel: `ADMIN_PASSWORD` (production and preview), `NEXT_PUBLIC_BASE_URL`,
+  `SQUARE_ENVIRONMENT=sandbox`. No Square token yet, so the live site runs demo checkout.
+- Verified: home and product pages 200, `/admin` 401 without password and 200 with it,
+  a sample demo order (LV-0001, "Sample Parent") created and shown on the board.
+- The Neon install also drops agent-skill files (`.agents/`, `.claude/`, `skills-lock.json`)
+  into the repo; removed, they are not part of the project.
+
+Next: Square sandbox credentials in Vercel to exercise the real checkout; Resend key for real
+emails; custom domain if the PTA has one.

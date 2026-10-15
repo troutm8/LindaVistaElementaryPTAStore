@@ -35,7 +35,8 @@ Copy `.env.example` to `.env` and fill in what you have. Each one is independent
 
 ## Deploy
 
-Push to GitHub, import into Vercel, set the variables above. Run `pnpm db:migrate` against
-the production `DATABASE_URL` once.
+Live at https://linda-vista-pta-store.vercel.app. Pushing to `main` deploys. The build runs
+the migration and seed itself, so a fresh database needs no manual step. Set the variables
+above in the Vercel project settings.
 
 See [docs/PLAN.md](docs/PLAN.md) for the plan, open questions, and build log.

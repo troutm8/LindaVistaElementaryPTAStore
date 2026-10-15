@@ -4,6 +4,8 @@ An online front for the Linda Vista Elementary PTA's in-person school store. Par
 online; a volunteer packs a bag; the family picks it up at the front office or it goes home
 in the student's backpack. Next.js 15 App Router, Postgres via Drizzle, Square hosted checkout (payment links). The PTA already runs its in-person store on Square, so online sales land in the same account.
 
+- Live: https://linda-vista-pta-store.vercel.app (Vercel project `linda-vista-pta-store`,
+  Neon database `lvpta-db`). Pushing to `main` deploys.
 - What it does and how to run it: [README.md](README.md).
 - Why it is built this way and what has been done so far: [docs/PLAN.md](docs/PLAN.md).
   **Append to the build log at the end of that file when you finish a piece of work.**
@@ -26,6 +28,10 @@ Things that will otherwise cost you time:
   exactly one process may open it. Stop `pnpm dev` before running `db:*` scripts.
 - **Port 3000 may be taken** by another Next app on this machine. `PORT=3077 pnpm dev` works;
   set `NEXT_PUBLIC_BASE_URL` to match so email links and Square redirects are right.
+- **`vercel env pull` writes `.env.local` with the production `DATABASE_URL`.** Next.js loads
+  it, so `pnpm dev` would then read and write the live Neon database while the `db:*` scripts
+  (which read `.env`, not `.env.local`) keep using PGlite. Delete `.env.local` after pulling
+  unless you mean to point local dev at production.
 - **`pnpm start` is production mode.** With no `ADMIN_PASSWORD`, `/admin` returns 503 there
   and is open in `pnpm dev`. That is deliberate.
 - **Every integration is optional** and the app degrades to a demo: no Square token → fake
