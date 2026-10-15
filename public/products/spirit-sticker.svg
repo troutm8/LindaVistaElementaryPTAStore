@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" rx="24" fill="#4a7fb8"/>
+  <g transform="translate(100 70) scale(5)" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M14 10 L26 10 L28 32 L12 32 Z M17 10 L17 7 L23 7 L23 10"/>
+  </g>
+  <text x="200" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="600" fill="white">Spirit Sticker</text>
+  <text x="200" y="360" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.75)">placeholder photo</text>
+</svg>

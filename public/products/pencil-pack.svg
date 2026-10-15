@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" rx="24" fill="#5b8fcf"/>
+  <g transform="translate(100 70) scale(5)" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M8 28 L26 10 L30 14 L12 32 L7 33 Z M24 12 L28 16"/>
+  </g>
+  <text x="200" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="600" fill="white">Linda Vista Pencils (6-pack)</text>
+  <text x="200" y="360" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="rgba(255,255,255,0.75)">placeholder photo</text>
+</svg>

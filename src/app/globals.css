@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* Linda Vista Elementary: blue and white, with the eagle. */
+@theme {
+  --color-brand: #2a6fb5;
+  --color-brand-dark: #1c4f8a;
+  --color-brand-light: #e6f0fa;
+  --color-brand-sky: #bcd7f2;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
