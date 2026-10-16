@@ -23,7 +23,8 @@ The board also has a **Packing list** (totals to pull from stock, then every bag
 classroom or the front office, printable), a **Stock** page for on-hand counts (zero shows
 "Sold out" in the store), and **CSV exports** of orders and line items for the treasurer.
 **Cancel order** refunds the parent through Square, puts the stock back, and emails them.
-Set `NOTIFY_EMAIL` to have volunteers emailed about every new paid order.
+Set `NOTIFY_EMAIL` to have volunteers emailed about every new paid order. Unpaid checkouts
+older than a day are cancelled by a nightly cron (`CRON_SECRET` required in production).
 
 ## Turning on the real integrations
 

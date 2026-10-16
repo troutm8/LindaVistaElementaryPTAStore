@@ -44,7 +44,8 @@ For each line on the list:
 2. Print the label: on the board, find the order and tap **Print label**. The label shows the
    family name in big letters, the student and teacher, the order number, and the contents.
    For send-home orders it says **Walk to: [teacher]**. Tape it to the bag.
-3. On the board, tap **Mark packed**.
+3. On the board, tap **Mark packed**. Or, once every bag on the list is done, tap
+   **Mark all packed** at the top of the packing list to do them all at once.
 
 If the parent wrote a note (it shows in orange on the card and on the list), read it. It's
 usually "the blue one please" or "my kid is in the afternoon class."
@@ -59,6 +60,7 @@ Packing list → **To deliver** tab shows only the packed bags, grouped the same
 
 Once a bag is where it belongs, tap **Mark ready (emails family)** on the board. That
 sends the parent the "your bag is ready" email, so only do it once the bag is actually there.
+After a full delivery round, **Mark all ready** on the "To deliver" list does them all at once.
 
 ### 4. Close out
 
@@ -85,7 +87,9 @@ The refund goes straight back to the card the parent paid with through Square, u
 within 5 to 10 business days. You do not need to do anything in the Square app. If Square
 refuses the refund for some reason, the order is left alone and the page tells you why.
 
-Cancelled orders stay visible on the **Cancelled** tab with the refund amount.
+Cancelled orders stay visible on the **Cancelled** tab with the refund amount. You will
+also see "Parent never paid" entries there: those are checkouts someone started and
+abandoned. The system cancels them by itself after a day. Nothing to do.
 
 Picked-up orders can't be cancelled from the board. If a family returns something after
 pickup, refund it in the Square app the same way you would for an in-person sale.

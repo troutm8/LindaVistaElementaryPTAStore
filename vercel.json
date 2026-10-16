@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["sfo1"],
-  "buildCommand": "pnpm db:migrate && pnpm db:seed && pnpm build"
+  "regions": [
+    "sfo1"
+  ],
+  "buildCommand": "pnpm db:migrate && pnpm db:seed && pnpm build",
+  "crons": [
+    {
+      "path": "/api/cron/expire-pending",
+      "schedule": "0 10 * * *"
+    }
+  ]
 }

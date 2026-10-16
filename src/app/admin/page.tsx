@@ -1,7 +1,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import type { OrderStatus } from "@/db/schema";
-import { CANCELLABLE, listOrders, NEXT_STATUS, orderNumber, PICKUP_LABELS, STATUS_LABELS, type OrderWithItems } from "@/lib/orders";
+import { ABANDONED_REASON, CANCELLABLE, countPending, listOrders, NEXT_STATUS, orderNumber, PICKUP_LABELS, STATUS_LABELS, type OrderWithItems } from "@/lib/orders";
 import { formatCents } from "@/lib/money";
 import { changeStatus } from "./actions";
 
@@ -27,6 +27,7 @@ const ACTION_LABELS: Record<OrderStatus, string> = {
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const { tab } = await searchParams;
   const all = await listOrders();
+  const pending = await countPending();
   const active = (TABS.find((t) => t.key === tab) ?? TABS[0]).key;
   const shown = all.filter((o) => o.status === active);
   const counts = Object.fromEntries(TABS.map((t) => [t.key, all.filter((o) => o.status === t.key).length]));
@@ -58,6 +59,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           </Link>
         ))}
       </nav>
+
+      {pending > 0 && (
+        <p className="-mt-3 mb-6 text-xs text-slate-500">
+          {pending} checkout{pending === 1 ? "" : "s"} started but not paid. Not shown here; cancelled automatically after a day.
+        </p>
+      )}
 
       {shown.length === 0 ? (
         <p className="rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">Nothing here right now.</p>
@@ -102,7 +109,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
       {order.status === "cancelled" && (
         <p className="text-sm text-slate-600">
           <strong>Cancelled</strong>{order.cancelledAt && ` ${order.cancelledAt.toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" })}`}.{" "}
-          {order.refundedCents > 0 ? `Refunded ${formatCents(order.refundedCents)} via Square.` : order.paymentProvider === "demo" ? "Demo order, nothing to refund." : "No refund issued."}
+          {order.cancelReason === ABANDONED_REASON ? "Parent never paid; nothing to refund." : order.refundedCents > 0 ? `Refunded ${formatCents(order.refundedCents)} via Square.` : order.paymentProvider === "demo" ? "Demo order, nothing to refund." : "No refund issued."}
           {order.cancelReason && ` Reason: ${order.cancelReason}`}
         </p>
       )}

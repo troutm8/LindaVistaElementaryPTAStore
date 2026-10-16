@@ -31,3 +31,21 @@ export async function cancelOrderAction(formData: FormData): Promise<void> {
   revalidatePath("/admin");
   redirect("/admin?tab=cancelled");
 }
+
+/** Move every listed order to `to`, skipping any whose current status does not allow it. */
+export async function bulkStatusAction(formData: FormData): Promise<void> {
+  const { redirect } = await import("next/navigation");
+  const to = String(formData.get("to")) as OrderStatus;
+  const ids = String(formData.get("ids") ?? "").split(",").map(Number).filter((n) => Number.isInteger(n) && n > 0);
+  const back = String(formData.get("back") ?? "/admin");
+  if (!ORDER_STATUSES.includes(to) || ids.length === 0) return;
+  for (const id of ids) {
+    const order = await getOrderById(id);
+    if (!order) continue;
+    if (!(NEXT_STATUS[order.status] ?? []).includes(to)) continue;
+    await setStatus(id, to);
+  }
+  revalidatePath("/admin");
+  revalidatePath("/admin/packing");
+  redirect(back.startsWith("/admin") ? back : "/admin");
+}

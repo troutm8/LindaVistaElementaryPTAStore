@@ -360,3 +360,26 @@ page, the CSV exports, what emails parents get, and answers to the questions par
 Written so the board can gauge the volunteer workload when they review the mockup. It notes
 that emails are not sent until the PTA sets up a sending address. Linked from the README.
 
+### 2026-10-15 — bulk packing, abandoned checkouts
+
+Last two items before pausing for the board's feedback.
+
+- **Bulk status on the packing list.** "To pack" has "Mark all packed · N"; "To deliver" has
+  "Mark all ready (emails families) · N". One server action (`bulkStatusAction`) walks the
+  listed ids and applies the normal `NEXT_STATUS` check per order, so a stale page cannot
+  skip a step. Verified locally: five bags packed with one click, counts moved 5 → 0 / 0 → 5.
+- **Abandoned checkouts.** Checkouts that never reach payment sit in `pending` and were
+  invisible. Now: the board shows "N checkouts started but not paid" under the tabs, and
+  `/api/cron/expire-pending` runs daily at 03:00 Pacific via Vercel Cron (`vercel.json`,
+  bearer `CRON_SECRET`, set in Vercel production). `expireAbandonedCheckouts(24h)` first
+  asks Square whether each stale Square order was actually paid, because a lost webhook plus
+  a parent who never opened the order page would otherwise strand a paid order: paid → it
+  runs `markPaid` like the webhook would (stock, receipt, notification); not paid → cancelled
+  with reason "Checkout not completed", no refund, no restock, no email, since none of those
+  happened. Abandoned orders appear on the Cancelled tab as "Parent never paid".
+- **Verified** locally against the sandbox with two backdated pending orders, one paid in
+  Square's testing panel without opening the order page: result `{expired: 1, recovered: 1}`,
+  the paid one landed on "To pack" with its emails logged, the other on Cancelled.
+
+Pausing here. Everything that does not depend on the PTA's feedback is built and deployed.
+

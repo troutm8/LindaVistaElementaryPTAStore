@@ -3,12 +3,13 @@ import clsx from "clsx";
 import { listOrders, orderNumber } from "@/lib/orders";
 import { groupByDestination, pullList } from "@/lib/packing";
 import { PrintButton } from "@/components/PrintButton";
+import { bulkStatusAction } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
 
 const MODES = {
-  pack: { title: "To pack", status: "paid", blurb: "Orders that are paid and waiting. Pull the stock, bag each order, then mark them packed on the board." },
-  deliver: { title: "To deliver", status: "packed", blurb: "Bags that are packed. Walk them to each classroom or the office, then mark them ready on the board." },
+  pack: { title: "To pack", status: "paid", next: "packed", bulk: "Mark all packed", blurb: "Orders that are paid and waiting. Pull the stock, bag each order, then mark them packed." },
+  deliver: { title: "To deliver", status: "packed", next: "ready", bulk: "Mark all ready (emails families)", blurb: "Bags that are packed. Walk them to each classroom or the office, then mark them ready." },
 } as const;
 type Mode = keyof typeof MODES;
 
@@ -29,9 +30,19 @@ export default async function PackingPage({ searchParams }: { searchParams: Prom
           <h1 className="text-2xl font-bold">Packing list</h1>
           <p className="text-sm text-slate-500">{MODES[mode].blurb}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link href="/admin" className="text-sm text-brand underline">← Back to board</Link>
           <PrintButton />
+          {shown.length > 0 && (
+            <form action={bulkStatusAction}>
+              <input type="hidden" name="to" value={MODES[mode].next} />
+              <input type="hidden" name="ids" value={shown.map((o) => o.id).join(",")} />
+              <input type="hidden" name="back" value={`/admin/packing?mode=${mode}`} />
+              <button type="submit" className="rounded-lg border border-brand bg-white px-4 py-2 text-sm font-semibold text-brand hover:bg-brand-light">
+                {MODES[mode].bulk} · {shown.length}
+              </button>
+            </form>
+          )}
         </div>
       </div>
 

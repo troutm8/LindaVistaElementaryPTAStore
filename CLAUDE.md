@@ -72,7 +72,8 @@ pnpm db:reset                 # wipe PGlite, migrate, seed
   spreadsheet exports, `/admin/orders/[id]/label` printable bag label,
   `/admin/orders/[id]/cancel` two-step cancel (refund through Square, restock, email).
 - `src/app/api/checkout` creates the order and starts payment; `src/app/api/square/webhook`
-  marks it paid. `src/lib/square.ts` wraps the SDK. `src/middleware.ts` is basic auth for
+  marks it paid. `src/app/api/cron/expire-pending` (Vercel Cron, daily, `CRON_SECRET`)
+  cancels day-old unpaid checkouts after asking Square whether they were paid after all. `src/lib/square.ts` wraps the SDK. `src/middleware.ts` is basic auth for
   `/admin`.
 - `src/lib/orders.ts` is the order lifecycle (pending → paid → packed → ready → picked_up).
   Only `markPaid` makes an order real; it is idempotent, decrements stock, and sends the

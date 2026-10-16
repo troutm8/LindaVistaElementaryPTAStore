@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   orderItems,
@@ -283,4 +283,48 @@ export async function listOrders(): Promise<OrderWithItems[]> {
   const byOrder = new Map<number, OrderItem[]>();
   for (const it of items) byOrder.set(it.orderId, [...(byOrder.get(it.orderId) ?? []), it]);
   return rows.map((r) => ({ ...r, items: byOrder.get(r.id) ?? [] }));
+}
+
+/** Pending orders: checkouts started but not paid. They are hidden from the board. */
+export async function countPending(): Promise<number> {
+  const d = await db();
+  const [row] = await d.select({ n: sql<number>`count(*)::int` }).from(orders).where(eq(orders.status, "pending"));
+  return row?.n ?? 0;
+}
+
+export const ABANDONED_REASON = "Checkout not completed";
+
+/**
+ * Nightly cleanup. A checkout that has sat in `pending` longer than `olderThanMs` is
+ * either abandoned or, rarely, paid without us hearing (webhook lost and the parent
+ * never opened the order page). So for Square orders we ask Square first: paid → mark
+ * paid like the webhook would; otherwise cancel with no refund, no restock, no email,
+ * since none of those happened. Demo orders are never pending, but handle them anyway.
+ */
+export async function expireAbandonedCheckouts(olderThanMs: number): Promise<{ expired: number; recovered: number }> {
+  const d = await db();
+  const cutoff = new Date(Date.now() - olderThanMs);
+  const stale = await d.select().from(orders).where(and(eq(orders.status, "pending"), lt(orders.createdAt, cutoff)));
+  let expired = 0;
+  let recovered = 0;
+  for (const o of stale) {
+    if (o.paymentProvider === "square" && o.providerOrderId) {
+      const { squareEnabled } = await import("./env");
+      if (squareEnabled()) {
+        const { squareOrderPaid } = await import("./square");
+        const { paid, paymentId } = await squareOrderPaid(o.providerOrderId);
+        if (paid) {
+          if (await markPaid(o.id, paymentId)) recovered++;
+          continue;
+        }
+      }
+    }
+    const [done] = await d
+      .update(orders)
+      .set({ status: "cancelled", cancelledAt: new Date(), cancelReason: ABANDONED_REASON })
+      .where(and(eq(orders.id, o.id), eq(orders.status, "pending")))
+      .returning({ id: orders.id });
+    if (done) expired++;
+  }
+  return { expired, recovered };
 }
