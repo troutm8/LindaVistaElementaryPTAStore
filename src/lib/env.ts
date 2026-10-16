@@ -7,3 +7,7 @@ export function baseUrl(): string {
 
 export const squareEnabled = () => Boolean(process.env.SQUARE_ACCESS_TOKEN && process.env.SQUARE_LOCATION_ID);
 export const emailEnabled = () => Boolean(process.env.RESEND_API_KEY);
+
+/** Volunteer addresses that get a note on every paid order. Comma-separated. Empty = no notifications. */
+export const notifyEmails = (): string[] =>
+  (process.env.NOTIFY_EMAIL ?? "").split(",").map((s) => s.trim()).filter(Boolean);

@@ -6,7 +6,7 @@ const order: OrderWithItems = {
   id: 7, publicId: "abc", status: "paid", email: "p@example.com", customerName: "Smith, Jane", phone: "", studentName: "Sam", teacher: "Ms. A",
   pickupMethod: "student", notes: 'says "thanks"', subtotalCents: 2100, totalCents: 2100, paymentProvider: "square",
   providerOrderId: "sq_o", providerPaymentId: "sq_p", createdAt: new Date("2026-10-15T21:00:00Z"), paidAt: new Date("2026-10-15T21:05:00Z"),
-  packedAt: null, readyAt: null, pickedUpAt: null,
+  packedAt: null, readyAt: null, pickedUpAt: null, cancelledAt: null, providerRefundId: null, refundedCents: 0, cancelReason: "",
   items: [
     { id: 1, orderId: 7, variantId: 1, productName: "Tee", color: "Blue", size: "YS", qty: 1, unitPriceCents: 1500 },
     { id: 2, orderId: 7, variantId: 2, productName: "Pencils", color: null, size: null, qty: 2, unitPriceCents: 300 },

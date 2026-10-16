@@ -11,7 +11,7 @@ import {
   type PaymentProvider,
   type PickupMethod,
 } from "@/db/schema";
-import { sendOrderReadyEmail, sendReceiptEmail } from "./email";
+import { sendCancelledEmail, sendNewOrderNotification, sendOrderReadyEmail, sendReceiptEmail } from "./email";
 
 export type OrderWithItems = Order & { items: OrderItem[] };
 
@@ -34,13 +34,31 @@ export const PICKUP_LABELS: Record<PickupMethod, string> = {
   student: "Send home with student",
 };
 
-/** Which status a volunteer may move an order to next. */
+/** Which status a volunteer may move an order to next. Cancelling is separate: see `cancelOrder`. */
 export const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus[]>> = {
-  paid: ["packed", "cancelled"],
+  paid: ["packed"],
   packed: ["ready", "paid"],
   ready: ["picked_up", "packed"],
   picked_up: ["ready"],
 };
+
+/** Statuses a volunteer may cancel from. Picked-up orders are done; pending ones never became real. */
+export const CANCELLABLE: OrderStatus[] = ["paid", "packed", "ready"];
+
+/**
+ * What cancelling an order means for money and stock. Pure, so it is testable:
+ * refund through Square only when Square took a payment; put stock back only if
+ * `markPaid` took it out (anything past pending).
+ */
+export function refundPlan(order: Pick<Order, "status" | "paymentProvider" | "providerPaymentId" | "totalCents" | "refundedCents">): {
+  squareRefundCents: number;
+  restock: boolean;
+} {
+  const tookStock = order.status !== "pending" && order.status !== "cancelled";
+  const owed = order.totalCents - order.refundedCents;
+  const viaSquare = order.paymentProvider === "square" && !!order.providerPaymentId && tookStock && owed > 0;
+  return { squareRefundCents: viaSquare ? owed : 0, restock: tookStock };
+}
 
 function randomPublicId(): string {
   const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
@@ -170,6 +188,52 @@ export async function markPaid(orderId: number, providerPaymentId?: string | nul
   }
   const full = { ...updated, items };
   await sendReceiptEmail(full);
+  await sendNewOrderNotification(full);
+  return full;
+}
+
+/**
+ * Cancel an order: refund through Square if Square was paid, put the stock back,
+ * mark it cancelled, email the parent. If the Square refund fails the order is
+ * left untouched and the error propagates, so a volunteer never sees "cancelled"
+ * on an order whose money did not move.
+ */
+export async function cancelOrder(orderId: number, reason: string): Promise<OrderWithItems> {
+  const d = await db();
+  const order = await getOrderById(orderId);
+  if (!order) throw new Error("Order not found");
+  if (order.status === "cancelled") return order;
+  if (!CANCELLABLE.includes(order.status)) throw new Error(`Cannot cancel an order that is ${STATUS_LABELS[order.status].toLowerCase()}`);
+
+  const plan = refundPlan(order);
+  let refundId: string | null = order.providerRefundId;
+  let refunded = order.refundedCents;
+  if (plan.squareRefundCents > 0) {
+    const { refundPayment } = await import("./square");
+    const r = await refundPayment({
+      paymentId: order.providerPaymentId!,
+      amountCents: plan.squareRefundCents,
+      reason: `${orderNumber(order.id)} cancelled${reason ? `: ${reason}` : ""}`,
+      idempotencyKey: `lvpta-refund-${order.id}-${order.publicId}`,
+    });
+    refundId = r.refundId;
+    refunded += plan.squareRefundCents;
+  }
+
+  if (plan.restock) {
+    for (const it of order.items) {
+      if (it.variantId != null) {
+        await d.update(variants).set({ stock: sql`${variants.stock} + ${it.qty}` }).where(eq(variants.id, it.variantId));
+      }
+    }
+  }
+  const [updated] = await d
+    .update(orders)
+    .set({ status: "cancelled", cancelledAt: new Date(), cancelReason: reason.trim().slice(0, 500), providerRefundId: refundId, refundedCents: refunded })
+    .where(eq(orders.id, orderId))
+    .returning();
+  const full = { ...updated, items: order.items };
+  await sendCancelledEmail(full, plan.squareRefundCents);
   return full;
 }
 

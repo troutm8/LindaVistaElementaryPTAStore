@@ -75,3 +75,22 @@ export async function verifyWebhook(rawBody: string, signatureHeader: string | n
   const notificationUrl = process.env.SQUARE_WEBHOOK_URL ?? `${baseUrl()}/api/square/webhook`;
   return WebhooksHelper.verifySignature({ requestBody: rawBody, signatureHeader, signatureKey: key, notificationUrl });
 }
+
+/**
+ * Refund a Square payment, in full or in part. Sandbox and production behave the same.
+ * Square may return PENDING in production; it settles to COMPLETED on its own and we
+ * do not block cancellation on that.
+ */
+export async function refundPayment(input: { paymentId: string; amountCents: number; reason: string; idempotencyKey: string }): Promise<{ refundId: string; status: string }> {
+  const res = await square().refunds.refundPayment({
+    idempotencyKey: input.idempotencyKey,
+    paymentId: input.paymentId,
+    amountMoney: { amount: BigInt(input.amountCents), currency: "USD" },
+    reason: input.reason.slice(0, 192) || undefined,
+  });
+  const refund = res.refund;
+  if (!refund?.id || refund.status === "REJECTED" || refund.status === "FAILED") {
+    throw new Error(`Square refund failed: ${JSON.stringify(res.errors ?? refund?.status ?? res)}`);
+  }
+  return { refundId: refund.id, status: refund.status ?? "PENDING" };
+}

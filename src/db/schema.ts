@@ -64,11 +64,16 @@ export const orders = pgTable("orders", {
   providerOrderId: text("provider_order_id"),
   /** Square payment id, once paid. */
   providerPaymentId: text("provider_payment_id"),
+  /** Square refund id, once cancelled and refunded. */
+  providerRefundId: text("provider_refund_id"),
+  refundedCents: integer("refunded_cents").notNull().default(0),
+  cancelReason: text("cancel_reason").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   paidAt: timestamp("paid_at", { withTimezone: true }),
   packedAt: timestamp("packed_at", { withTimezone: true }),
   readyAt: timestamp("ready_at", { withTimezone: true }),
   pickedUpAt: timestamp("picked_up_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
 });
 
 export const orderItems = pgTable("order_items", {

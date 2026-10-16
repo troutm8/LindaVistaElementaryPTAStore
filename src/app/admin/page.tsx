@@ -1,7 +1,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import type { OrderStatus } from "@/db/schema";
-import { listOrders, NEXT_STATUS, orderNumber, PICKUP_LABELS, STATUS_LABELS, type OrderWithItems } from "@/lib/orders";
+import { CANCELLABLE, listOrders, NEXT_STATUS, orderNumber, PICKUP_LABELS, STATUS_LABELS, type OrderWithItems } from "@/lib/orders";
 import { formatCents } from "@/lib/money";
 import { changeStatus } from "./actions";
 
@@ -99,6 +99,13 @@ function OrderCard({ order }: { order: OrderWithItems }) {
         <li className="mt-1 flex justify-between border-t border-slate-200 pt-1 font-semibold"><span>Total</span><span>{formatCents(order.totalCents)}</span></li>
       </ul>
       {order.notes && <p className="text-sm text-amber-800"><strong>Note:</strong> {order.notes}</p>}
+      {order.status === "cancelled" && (
+        <p className="text-sm text-slate-600">
+          <strong>Cancelled</strong>{order.cancelledAt && ` ${order.cancelledAt.toLocaleString("en-US", { timeZone: "America/Los_Angeles", dateStyle: "medium", timeStyle: "short" })}`}.{" "}
+          {order.refundedCents > 0 ? `Refunded ${formatCents(order.refundedCents)} via Square.` : order.paymentProvider === "demo" ? "Demo order, nothing to refund." : "No refund issued."}
+          {order.cancelReason && ` Reason: ${order.cancelReason}`}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         {next.map((to) => (
@@ -116,6 +123,9 @@ function OrderCard({ order }: { order: OrderWithItems }) {
             </button>
           </form>
         ))}
+        {CANCELLABLE.includes(order.status) && (
+          <Link href={`/admin/orders/${order.id}/cancel`} className="rounded-lg px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50">Cancel order</Link>
+        )}
         <Link href={`/admin/orders/${order.id}/label`} className="ml-auto text-sm font-semibold text-brand underline">Print label</Link>
       </div>
     </li>

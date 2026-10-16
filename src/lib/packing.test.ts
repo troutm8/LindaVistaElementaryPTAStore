@@ -6,7 +6,7 @@ function order(id: number, pickupMethod: "office" | "student", teacher: string, 
   return {
     id, publicId: `p${id}`, status: "paid", email: "", customerName: `Fam ${id}`, phone: "", studentName: "", teacher, pickupMethod, notes: "",
     subtotalCents: 0, totalCents: 0, paymentProvider: "demo", providerOrderId: null, providerPaymentId: null,
-    createdAt: new Date(), paidAt: null, packedAt: null, readyAt: null, pickedUpAt: null,
+    createdAt: new Date(), paidAt: null, packedAt: null, readyAt: null, pickedUpAt: null, cancelledAt: null, providerRefundId: null, refundedCents: 0, cancelReason: "",
     items: items.map(([productName, color, size, qty], i) => ({ id: id * 10 + i, orderId: id, variantId: null, productName, color, size, qty, unitPriceCents: 0 })),
   };
 }

@@ -1,4 +1,4 @@
-import { baseUrl, emailEnabled } from "./env";
+import { baseUrl, emailEnabled, notifyEmails } from "./env";
 import { formatCents } from "./money";
 import type { OrderWithItems } from "./orders";
 
@@ -75,6 +75,56 @@ export async function sendOrderReadyEmail(order: OrderWithItems): Promise<void> 
     text,
     html: `<p>Good news, ${esc(order.customerName)}: <strong>order ${num} is ready.</strong></p><p>${esc(where)}</p><p><a href="${link}">Order details</a></p>`,
   });
+}
+
+/** Tells the parent the order was cancelled and, if money moved, that it is coming back. */
+export async function sendCancelledEmail(order: OrderWithItems, refundedCents: number): Promise<void> {
+  const { orderNumber } = await labels();
+  const num = orderNumber(order.id);
+  const money =
+    refundedCents > 0
+      ? `We've refunded ${formatCents(refundedCents)} to the card you paid with. It usually shows up in 5 to 10 business days.`
+      : `No payment was taken, so there is nothing to refund.`;
+  const reason = order.cancelReason ? `Reason: ${order.cancelReason}` : "";
+  const text = [`Hi ${order.customerName}, your Linda Vista PTA Store order ${num} has been cancelled.`, ``, money, reason, ``, `Questions? Reply to this email and a PTA volunteer will help.`]
+    .filter((l) => l !== null)
+    .join("\n");
+  await send({
+    to: order.email,
+    subject: `Linda Vista PTA Store: order ${num} cancelled`,
+    text,
+    html: `<p>Hi ${esc(order.customerName)}, your Linda Vista PTA Store order <strong>${num}</strong> has been cancelled.</p><p>${esc(money)}</p>${reason ? `<p>${esc(reason)}</p>` : ""}<p>Questions? Reply to this email and a PTA volunteer will help.</p>`,
+  });
+}
+
+/** Heads-up to the volunteers that there is a bag to pack. Skipped when NOTIFY_EMAIL is unset. */
+export async function sendNewOrderNotification(order: OrderWithItems): Promise<void> {
+  const to = notifyEmails();
+  if (to.length === 0) return;
+  const { orderNumber, PICKUP_LABELS } = await labels();
+  const num = orderNumber(order.id);
+  const board = `${baseUrl()}/admin`;
+  const lines = itemLines(order);
+  const text = [
+    `New order ${num} from ${order.customerName} (${formatCents(order.totalCents)})`,
+    `Student: ${order.studentName}${order.teacher ? ` · ${order.teacher}` : ""}`,
+    `Delivery: ${PICKUP_LABELS[order.pickupMethod]}`,
+    ...lines,
+    order.notes ? `Note: ${order.notes}` : "",
+    ``,
+    `Volunteer board: ${board}`,
+  ].filter(Boolean).join("\n");
+  for (const addr of to) {
+    await send({
+      to: addr,
+      subject: `PTA store: new order ${num} to pack (${order.studentName})`,
+      text,
+      html: `<p><strong>New order ${num}</strong> from ${esc(order.customerName)} (${formatCents(order.totalCents)})</p>
+<p>Student: ${esc(order.studentName)}${order.teacher ? ` · ${esc(order.teacher)}` : ""}<br/>Delivery: ${esc(PICKUP_LABELS[order.pickupMethod])}</p>
+<ul>${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>${order.notes ? `<p>Note: ${esc(order.notes)}</p>` : ""}
+<p><a href="${board}">Open the volunteer board</a></p>`,
+    });
+  }
 }
 
 function esc(s: string): string {

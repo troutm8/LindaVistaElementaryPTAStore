@@ -15,3 +15,19 @@ export async function changeStatus(formData: FormData): Promise<void> {
   await setStatus(id, to);
   revalidatePath("/admin");
 }
+
+export async function cancelOrderAction(formData: FormData): Promise<void> {
+  const { redirect } = await import("next/navigation");
+  const { cancelOrder } = await import("@/lib/orders");
+  const id = Number(formData.get("id"));
+  const reason = String(formData.get("reason") ?? "");
+  if (!Number.isInteger(id)) return;
+  try {
+    await cancelOrder(id, reason);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Could not cancel";
+    redirect(`/admin/orders/${id}/cancel?error=${encodeURIComponent(msg)}`);
+  }
+  revalidatePath("/admin");
+  redirect("/admin?tab=cancelled");
+}
