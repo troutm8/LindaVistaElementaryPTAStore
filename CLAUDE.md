@@ -69,12 +69,16 @@ pnpm db:reset                 # wipe PGlite, migrate, seed
 - `src/app/` pages: `/` catalog, `/item/[slug]`, `/cart`, `/checkout`, `/order/[publicId]`,
   `/admin` volunteer board, `/admin/packing` printable packing list (pull totals + bags grouped
   by classroom), `/admin/stock` on-hand counts editor, `/admin/export/{orders,items}.csv`
-  spreadsheet exports, `/admin/orders/[id]/label` printable bag label.
+  spreadsheet exports, `/admin/orders/[id]/label` printable bag label,
+  `/admin/orders/[id]/cancel` two-step cancel (refund through Square, restock, email).
 - `src/app/api/checkout` creates the order and starts payment; `src/app/api/square/webhook`
   marks it paid. `src/lib/square.ts` wraps the SDK. `src/middleware.ts` is basic auth for
   `/admin`.
 - `src/lib/orders.ts` is the order lifecycle (pending → paid → packed → ready → picked_up).
-  Only `markPaid` makes an order real; it is idempotent and decrements stock.
+  Only `markPaid` makes an order real; it is idempotent, decrements stock, and sends the
+  receipt plus the volunteer notification (`NOTIFY_EMAIL`). `cancelOrder` is the only way to
+  cancel: it refunds through Square when Square was paid (`refundPlan` decides), restocks,
+  then marks cancelled. If the refund call fails, nothing changes and the volunteer sees why.
 - `src/lib/packing.ts`, `src/lib/csv.ts`, `src/lib/export.ts` are pure and tested; the admin
   pages are thin wrappers over them. Times shown to volunteers or exported use
   `America/Los_Angeles` explicitly because Vercel runs in UTC.
@@ -91,3 +95,7 @@ pnpm db:reset                 # wipe PGlite, migrate, seed
 - Never mark an order paid from a browser redirect alone. The webhook, or a server-side
   `orders.get` against Square, is the source of truth.
 - The order page URL uses the random `publicId`, never the sequential id.
+- Never set status to `cancelled` directly; go through `cancelOrder` so money and stock move.
+- To test Square paths locally, put the sandbox creds in `.env` (gitignored); the order page's
+  polling fallback marks orders paid without a webhook. Remove `.env` afterwards so local dev
+  goes back to demo mode.

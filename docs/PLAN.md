@@ -322,3 +322,32 @@ Fixed:
 
 Desktop re-checked after the changes; unchanged.
 
+### 2026-10-15 — refund on cancel, volunteer notification
+
+Tom chose to leave email sending off until the board picks a domain, but asked for the
+functionality anyway. Both pieces work now and just log to the console until `RESEND_API_KEY`
+is set.
+
+- **Cancel = refund.** "Cancel order" on the board is now a link to `/admin/orders/[id]/cancel`,
+  which spells out what will happen (refund amount through Square, which stock goes back,
+  who gets emailed) and takes an optional reason. `cancelOrder` refunds via Square's Refunds
+  API when Square took the payment, restocks everything `markPaid` took, marks the order
+  cancelled with the refund id and amount, and emails the parent. If Square rejects the
+  refund the order is left untouched and the page shows the error. `refundPlan` is the pure
+  decision (tested): Square refund only for a Square-paid order with money outstanding;
+  restock for anything past pending. Cancelling is allowed from paid, packed, and ready;
+  picked-up orders point the volunteer to the Square dashboard.
+- **Schema**: migration 0001 adds `provider_refund_id`, `refunded_cents`, `cancel_reason`,
+  `cancelled_at`. Applied to Neon by the next deploy's build step; smoke test passed after.
+- **New-order notification**: `NOTIFY_EMAIL` (comma-separated) gets a short email per paid
+  order with student, teacher, delivery, items, note, and a link to the board. Unset = nothing.
+- **Verified** locally against the Square sandbox: order LV-0067 paid through the testing
+  panel (polling fallback marked it paid), notification logged, cancel page offered
+  "Refund $18.00 and cancel", Square's refunds list shows the refund COMPLETED with reason
+  "LV-0067 cancelled", stock went 20 → 21, parent email names the refund. A demo-mode cancel
+  (LV-0034) restocked and emailed without touching Square.
+
+Open: Square refunds can sit in PENDING in production; we record them as done at cancel time
+and do not subscribe to `refund.updated`. Acceptable for a PTA store; revisit if a refund
+ever fails after the fact.
+
