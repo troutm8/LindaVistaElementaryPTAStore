@@ -50,4 +50,6 @@ from the database, the checkout API and Square webhook reject bad input, and `/a
 locked. Set `SMOKE_URL` to point it elsewhere (e.g. a local dev server) and
 `ADMIN_PASSWORD` to also check that the password opens the board. It creates no orders.
 
-See [docs/PLAN.md](docs/PLAN.md) for the plan, open questions, and build log.
+See [docs/PLAN.md](docs/PLAN.md) for the plan, open questions, and build log, and
+[docs/VOLUNTEER-GUIDE.md](docs/VOLUNTEER-GUIDE.md) for the non-technical guide to packing,
+delivering, cancelling, and stock.

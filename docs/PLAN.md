@@ -114,7 +114,8 @@ Cart lives in `localStorage` only; it is not an order until Stripe says so.
   permit and to collect tax on physical goods; Square can apply a tax to the order.
 - Processing fees: decide whether the PTA eats the Square online rate or offers "cover the
   fee" at checkout.
-- Hand-off doc for the volunteer who runs it: how to add a product, how to pack, how to refund.
+- Hand-off doc for the volunteer who runs it: done, see VOLUNTEER-GUIDE.md. Adding a product
+  still needs a catalog editor or a Square sync, so it is not in the guide yet.
 
 ## Decisions so far
 
@@ -350,4 +351,12 @@ is set.
 Open: Square refunds can sit in PENDING in production; we record them as done at cancel time
 and do not subscribe to `refund.updated`. Acceptable for a PTA store; revisit if a refund
 ever fails after the fact.
+
+### 2026-10-15 — volunteer guide
+
+`docs/VOLUNTEER-GUIDE.md`: a non-technical walkthrough of a packing session (print the
+list, bag and label, deliver, mark ready, close out), cancelling with refunds, the stock
+page, the CSV exports, what emails parents get, and answers to the questions parents ask.
+Written so the board can gauge the volunteer workload when they review the mockup. It notes
+that emails are not sent until the PTA sets up a sending address. Linked from the README.
 
